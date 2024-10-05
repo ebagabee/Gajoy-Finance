@@ -26,6 +26,23 @@ $('#loginForm').submit(function(event) {
 
 let finances = [];
 
+function calculateTotals() {
+    let totalConcluido = 0;
+    let totalEstimado = 0;
+  
+    finances.forEach(finance => {
+      totalEstimado += parseFloat(finance.value); // Inclui no total estimado
+  
+      if (finance.status === 'Concluído') {
+        totalConcluido += parseFloat(finance.value); // Inclui no total de concluídos
+      }
+    });
+  
+    // Atualiza o HTML para exibir os valores
+    $('#totalValue').text(totalConcluido.toFixed(2));
+    $('#estimatedValue').text(totalEstimado.toFixed(2));
+  }
+
 // Função para carregar as finanças do backend (api/finances)
 async function loadFinances() {
   const response = await fetch('/api/finances');
@@ -95,24 +112,27 @@ async function deleteFinance(id) {
 
 // Função para renderizar a tabela de finanças
 function renderTable() {
-  const tableBody = $('#financeTableBody');
-  tableBody.empty(); // Limpa o conteúdo da tabela
-
-  finances.forEach((finance, index) => {
-    const row = `<tr>
-      <td>${finance.date}</td>
-      <td>${finance.info}</td>
-      <td>${finance.value}</td>
-      <td>${finance.type}</td>
-      <td>${finance.status}</td>
-      <td>
-        <button class="btn btn-warning btn-sm editFinance" data-index="${index}" data-id="${finance.id}">Editar</button>
-        <button class="btn btn-danger btn-sm deleteFinance" data-id="${finance.id}">Excluir</button>
-      </td>
-    </tr>`;
-    tableBody.append(row);
-  });
-}
+    const tableBody = $('#financeTableBody');
+    tableBody.empty(); // Limpa o conteúdo da tabela
+  
+    finances.forEach((finance, index) => {
+      const row = `<tr>
+        <td>${finance.date}</td>
+        <td>${finance.info}</td>
+        <td>${finance.value}</td>
+        <td>${finance.type}</td>
+        <td>${finance.status}</td>
+        <td>
+          <button class="btn btn-warning btn-sm editFinance" data-index="${index}" data-id="${finance.id}">Editar</button>
+          <button class="btn btn-danger btn-sm deleteFinance" data-id="${finance.id}">Excluir</button>
+        </td>
+      </tr>`;
+      tableBody.append(row);
+    });
+  
+    // Calcula e exibe os totais
+    calculateTotals();
+  }
 
 // Ação para adicionar nova entrada
 $('#addFinance').click(function() {
