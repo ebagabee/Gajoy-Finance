@@ -31,10 +31,22 @@ function calculateTotals() {
     let totalEstimado = 0;
   
     finances.forEach(finance => {
-      totalEstimado += parseFloat(finance.value); // Inclui no total estimado
+      const valor = parseFloat(finance.value);
   
+      // Para o total estimado, incluímos todas as entradas
+      if (finance.type === 'Despesa') {
+        totalEstimado -= valor; // Subtraímos despesas no estimado
+      } else {
+        totalEstimado += valor; // Somamos receitas no estimado
+      }
+  
+      // Para o total concluído, consideramos apenas as entradas concluídas
       if (finance.status === 'Concluído') {
-        totalConcluido += parseFloat(finance.value); // Inclui no total de concluídos
+        if (finance.type === 'Despesa') {
+          totalConcluido -= valor; // Subtraímos despesas no total concluído
+        } else {
+          totalConcluido += valor; // Somamos receitas no total concluído
+        }
       }
     });
   
