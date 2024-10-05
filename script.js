@@ -26,10 +26,42 @@ $('#loginForm').submit(function(event) {
 
 let finances = [];
 
-// Função para renderizar a tabela de finanças
+function loadFinances() {
+  fetch('/api/finances')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Erro ao carregar finanças');
+      }
+      return response.json();
+    })
+    .then(data => {
+      finances = data;
+      renderTable();  
+    })
+    .catch(error => {
+      console.error('Erro ao carregar finanças:', error);
+    });
+}
+
+function saveFinances(newFinance) {
+  fetch('/api/finances', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(newFinance)
+  })
+  .then(() => {
+    loadFinances(); 
+  })
+  .catch(error => {
+    console.error('Erro ao salvar finança:', error);
+  });
+}
+
 function renderTable() {
   const tableBody = $('#financeTableBody');
-  tableBody.empty(); // Limpar o conteúdo da tabela
+  tableBody.empty();
 
   finances.forEach((finance, index) => {
     const row = `<tr>
@@ -71,7 +103,10 @@ $(document).on('click', '.editFinance', function() {
 
 $(document).on('click', '.deleteFinance', function() {
   const index = $(this).data('index');
-  finances.splice(index, 1); 
+  finances.splice(index, 1);
+
+
+  saveFinances(finances);
   renderTable();
 });
 
@@ -93,9 +128,12 @@ $('#financeForm').submit(function(event) {
     finances.push(finance);
   }
 
-  $('#financeModal').modal('hide'); 
-  renderTable(); 
+  $('#financeModal').modal('hide');
+
+  saveFinances(finances);
+  renderTable();
 });
 
-renderTable();
+loadFinances();
+
 
