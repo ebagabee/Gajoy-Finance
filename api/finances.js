@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const filePath = path.resolve('./api/finances.json'); // Caminho correto para o arquivo JSON
+const filePath = path.resolve('./api/finance.json'); // Caminho correto para o arquivo JSON
 
 export default function handler(req, res) {
   if (req.method === 'GET') {
