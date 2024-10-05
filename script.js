@@ -64,6 +64,14 @@ function formatCurrency(value) {
   });
 }
 
+function formatDateBrazil(dateString) {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
 async function loadFinances() {
   const response = await fetch("/api/finances");
   const data = await response.json();
@@ -146,7 +154,7 @@ function renderTable() {
     const rowColor =
       finance.type === "Receita" ? "table-success" : "table-danger";
     const row = `<tr class="${rowColor}">
-        <td>${finance.date}</td>
+        <td>${formatDateBrazil(finance.date)}</td>
         <td>${finance.info}</td>
         <td>${formatCurrency(finance.value)}</td>
         <td>${finance.type}</td>
@@ -229,7 +237,7 @@ function renderPagination(totalItems) {
   $("#nextPage").click(() => {
     currentPage++;
     renderTable();
-  })
+  });
 }
 
 $("#addFinance").click(function () {
