@@ -5,6 +5,7 @@ const filePath = path.resolve('./finances.json');
 
 export default function handler(req, res) {
   if (req.method === 'GET') {
+    // Ler o arquivo JSON e retornar os dados
     fs.readFile(filePath, 'utf8', (err, data) => {
       if (err) {
         return res.status(500).json({ error: 'Falha ao ler o arquivo' });
@@ -14,22 +15,14 @@ export default function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const newFinance = req.body;
+    const updatedFinances = req.body; // Recebe o array completo de finanças
 
-    fs.readFile(filePath, 'utf8', (err, data) => {
+    // Sobrescreve o arquivo com o array atualizado de finanças
+    fs.writeFile(filePath, JSON.stringify(updatedFinances, null, 2), (err) => {
       if (err) {
-        return res.status(500).json({ error: 'Falha ao ler o arquivo' });
+        return res.status(500).json({ error: 'Falha ao salvar o arquivo' });
       }
-
-      const finances = JSON.parse(data);
-      finances.push(newFinance);
-
-      fs.writeFile(filePath, JSON.stringify(finances), (err) => {
-        if (err) {
-          return res.status(500).json({ error: 'Falha ao salvar o arquivo' });
-        }
-        res.status(200).json({ message: 'Entrada adicionada com sucesso' });
-      });
+      res.status(200).json({ message: 'Finanças atualizadas com sucesso' });
     });
   }
 }

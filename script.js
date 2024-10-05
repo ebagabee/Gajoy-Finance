@@ -26,6 +26,7 @@ $('#loginForm').submit(function(event) {
 
 let finances = [];
 
+// Função para carregar finanças do backend
 function loadFinances() {
   fetch('/api/finances')
     .then(response => {
@@ -35,33 +36,35 @@ function loadFinances() {
       return response.json();
     })
     .then(data => {
-      finances = data;
-      renderTable();  
+      finances = data; // Atualiza o array de finanças
+      renderTable();   // Renderiza a tabela com as finanças carregadas
     })
     .catch(error => {
       console.error('Erro ao carregar finanças:', error);
     });
 }
 
-function saveFinances(newFinance) {
+// Função para salvar o array completo de finanças no backend
+function saveFinances() {
   fetch('/api/finances', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(newFinance)
+    body: JSON.stringify(finances) // Envia o array completo
   })
   .then(() => {
-    loadFinances(); 
+    loadFinances(); // Recarrega a tabela após salvar
   })
   .catch(error => {
-    console.error('Erro ao salvar finança:', error);
+    console.error('Erro ao salvar finanças:', error);
   });
 }
 
+// Função para renderizar a tabela de finanças
 function renderTable() {
   const tableBody = $('#financeTableBody');
-  tableBody.empty();
+  tableBody.empty(); // Limpa o conteúdo da tabela
 
   finances.forEach((finance, index) => {
     const row = `<tr>
@@ -79,6 +82,7 @@ function renderTable() {
   });
 }
 
+// Ação para adicionar uma nova entrada
 $('#addFinance').click(function() {
   $('#financeModalLabel').text('Adicionar Nova Entrada');
   $('#financeForm')[0].reset();
@@ -86,6 +90,7 @@ $('#addFinance').click(function() {
   $('#financeModal').modal('show');
 });
 
+// Ação para editar uma entrada existente
 $(document).on('click', '.editFinance', function() {
   const index = $(this).data('index');
   const finance = finances[index];
@@ -101,15 +106,16 @@ $(document).on('click', '.editFinance', function() {
   $('#financeModal').modal('show');
 });
 
+// Ação para excluir uma entrada existente
 $(document).on('click', '.deleteFinance', function() {
   const index = $(this).data('index');
-  finances.splice(index, 1);
+  finances.splice(index, 1); // Remove a entrada da lista
 
-
-  saveFinances(finances);
-  renderTable();
+  saveFinances(); // Salva o array atualizado no backend
+  renderTable();  // Re-renderiza a tabela
 });
 
+// Salvar nova entrada ou editar existente
 $('#financeForm').submit(function(event) {
   event.preventDefault();
 
@@ -123,17 +129,19 @@ $('#financeForm').submit(function(event) {
 
   const editIndex = $('#editIndex').val();
   if (editIndex) {
-    finances[editIndex] = finance;
+    finances[editIndex] = finance; // Editando uma entrada existente
   } else {
-    finances.push(finance);
+    finances.push(finance); // Adicionando uma nova entrada
   }
 
-  $('#financeModal').modal('hide');
+  $('#financeModal').modal('hide'); // Fecha o modal
 
-  saveFinances(finances);
-  renderTable();
+  saveFinances();  // Salva o array atualizado no backend
+  renderTable();   // Atualiza a tabela com as finanças atualizadas
 });
 
+// Carregar as finanças ao carregar a página
 loadFinances();
+
 
 
