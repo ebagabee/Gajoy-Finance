@@ -24,7 +24,7 @@ $('#loginForm').submit(function(event) {
         });
 });
 
-// Carregar todas as finanças do backend (finances.json)
+// Carregar todas as finanças do backend (database.json)
 function loadFinances() {
     fetch('/api/finances')
       .then(response => {
@@ -34,7 +34,7 @@ function loadFinances() {
         return response.json(); // Retorna os dados do JSON
       })
       .then(data => {
-        finances = data; // Atualiza o array com os dados do backend
+        finances = data || []; // Garante que há um array de finanças
         renderTable();   // Renderiza a tabela com os dados carregados
       })
       .catch(error => {
@@ -141,6 +141,7 @@ function loadFinances() {
   // Carregar as finanças ao carregar a página
   let finances = []; // Inicializa o array de finanças
   loadFinances();    // Carrega as finanças do backend
+  
 
 
 

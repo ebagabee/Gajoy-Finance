@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const filePath = path.resolve('./api/finance.json'); // Caminho correto para o arquivo JSON
+const filePath = path.resolve('./api/database.json');
 
 export default function handler(req, res) {
   if (req.method === 'GET') {
@@ -10,15 +10,19 @@ export default function handler(req, res) {
       if (err) {
         return res.status(500).json({ error: 'Falha ao ler o arquivo' });
       }
-      res.status(200).json(JSON.parse(data)); // Retorna os dados do JSON
+      try {
+        const finances = JSON.parse(data || '[]'); // Certifica que o JSON existe
+        res.status(200).json(finances); // Retorna o conteúdo de `database.json`
+      } catch (err) {
+        return res.status(500).json({ error: 'Erro ao parsear o JSON' });
+      }
     });
   }
 
   if (req.method === 'POST') {
-    // Recebe o array completo de finanças do frontend
-    const updatedFinances = req.body;
+    const updatedFinances = req.body; // Recebe o array de finanças
 
-    // Escreve o array completo no arquivo JSON
+    // Salva o array atualizado no arquivo JSON
     fs.writeFile(filePath, JSON.stringify(updatedFinances, null, 2), (err) => {
       if (err) {
         return res.status(500).json({ error: 'Falha ao salvar o arquivo' });
