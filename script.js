@@ -1,3 +1,6 @@
+let currentPage = 1;
+const itemsPerPage = 10;
+
 $("#loginForm").submit(function (event) {
   event.preventDefault();
 
@@ -67,6 +70,10 @@ async function loadFinances() {
 
   if (response.ok) {
     finances = data;
+
+    // Datas mais recentes primeiro
+    finances.sort((a, b) => new Date(b.date) - new Date(a.date));
+
     renderTable();
   } else {
     console.error("Erro ao carregar finanças:", data.error);
@@ -128,9 +135,14 @@ function renderTable() {
   const tableBody = $("#financeTableBody");
   tableBody.empty();
 
+  // Aplica os filtros antes de renderizar a tabela
   const filteredFinances = applyFilters();
 
-  filteredFinances.forEach((finance, index) => {
+  // Pagina os resultados filtrados
+  const paginatedFinances = paginate(filteredFinances);
+
+  // Renderiza as finanças paginadas
+  paginatedFinances.forEach((finance, index) => {
     const rowColor =
       finance.type === "Receita" ? "table-success" : "table-danger";
     const row = `<tr class="${rowColor}">
@@ -152,6 +164,8 @@ function renderTable() {
   });
 
   calculateTotals();
+
+  renderPagination(filteredFinances.length);
 }
 
 // Eventos de filtro de busca
@@ -176,6 +190,46 @@ function applyFilters() {
   });
 
   return filteredFinances;
+}
+
+// Fazer a paginação
+function paginate(filteredFinances) {
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  return filteredFinances.slice(startIndex, endIndex);
+}
+
+// Function para renderizar a paginação
+function renderPagination(totalItems) {
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const paginationContainer = $("#pagination");
+  paginationContainer.empty();
+
+  if (totalPages <= 1) return; // Não exibe paginação se houver apenas se tiver
+
+  // Botão anterior
+  if (currentPage > 1) {
+    paginationContainer.append(
+      `<button class="btn btn-secondary me-2" id="prevPage">Anterior</button>`
+    );
+  }
+
+  // Botão "Proxima"
+  if (currentPage < totalPages) {
+    paginationContainer.append(
+      `<button class="btn btn-secondary me-2" id="nextPage">Próxima</button>`
+    );
+  }
+
+  $("#prevPage").click(() => {
+    currentPage--;
+    renderTable();
+  });
+
+  $("#nextPage").click(() => {
+    currentPage++;
+    renderTable();
+  })
 }
 
 $("#addFinance").click(function () {
