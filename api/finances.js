@@ -1,33 +1,68 @@
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
-const filePath = path.resolve('./api/database.json');
+// Acesse as variáveis de ambiente no backend
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method === 'GET') {
-    // Lê o arquivo JSON e retorna os dados
-    fs.readFile(filePath, 'utf8', (err, data) => {
-      if (err) {
-        return res.status(500).json({ error: 'Falha ao ler o arquivo' });
-      }
-      try {
-        const finances = JSON.parse(data || '[]'); // Certifica que o JSON existe
-        res.status(200).json(finances); // Retorna o conteúdo de `database.json`
-      } catch (err) {
-        return res.status(500).json({ error: 'Erro ao parsear o JSON' });
-      }
-    });
+    // Busca todas as finanças no Supabase
+    const { data, error } = await supabase
+      .from('finances')
+      .select('*');
+
+    if (error) {
+      return res.status(500).json({ error: 'Falha ao carregar as finanças' });
+    }
+
+    res.status(200).json(data);
   }
 
   if (req.method === 'POST') {
-    const updatedFinances = req.body; // Recebe o array de finanças
+    const newFinance = req.body;
 
-    // Salva o array atualizado no arquivo JSON
-    fs.writeFile(filePath, JSON.stringify(updatedFinances, null, 2), (err) => {
-      if (err) {
-        return res.status(500).json({ error: 'Falha ao salvar o arquivo' });
-      }
-      res.status(200).json({ message: 'Finanças atualizadas com sucesso' });
-    });
+    // Insere a nova entrada no Supabase
+    const { data, error } = await supabase
+      .from('finances')
+      .insert([newFinance]);
+
+    if (error) {
+      return res.status(500).json({ error: 'Falha ao salvar a finança' });
+    }
+
+    res.status(200).json({ message: 'Finança adicionada com sucesso', data });
+  }
+
+  if (req.method === 'DELETE') {
+    const { id } = req.body;
+
+    // Exclui uma entrada pelo ID
+    const { data, error } = await supabase
+      .from('finances')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      return res.status(500).json({ error: 'Falha ao excluir a finança' });
+    }
+
+    res.status(200).json({ message: 'Finança excluída com sucesso', data });
+  }
+
+  if (req.method === 'PUT') {
+    const { id, updatedFinance } = req.body;
+
+    // Atualiza uma entrada pelo ID
+    const { data, error } = await supabase
+      .from('finances')
+      .update(updatedFinance)
+      .eq('id', id);
+
+    if (error) {
+      return res.status(500).json({ error: 'Falha ao atualizar a finança' });
+    }
+
+    res.status(200).json({ message: 'Finança atualizada com sucesso', data });
   }
 }
