@@ -1,205 +1,229 @@
-$('#loginForm').submit(function(event) {
-    event.preventDefault(); 
+$("#loginForm").submit(function (event) {
+  event.preventDefault();
 
-    const username = $('#username').val();
-    const password = $('#password').val();
+  const username = $("#username").val();
+  const password = $("#password").val();
 
-    fetch('/api/credentials')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erro ao buscar credenciais');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (username === data.user && password === data.password) {
-                window.location.href = 'finance.html';
-            } else {
-                $('#errorMessage').show();
-            }
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            $('#errorMessage').text('Erro ao autenticar, tente novamente mais tarde.').show();
-        });
+  fetch("/api/credentials")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Erro ao buscar credenciais");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      if (username === data.user && password === data.password) {
+        window.location.href = "finance.html";
+      } else {
+        $("#errorMessage").show();
+      }
+    })
+    .catch((error) => {
+      console.error("Erro:", error);
+      $("#errorMessage")
+        .text("Erro ao autenticar, tente novamente mais tarde.")
+        .show();
+    });
 });
 
 let finances = [];
 
 function calculateTotals() {
-    let totalConcluido = 0;
-    let totalEstimado = 0;
-  
-    finances.forEach(finance => {
-      const valor = parseFloat(finance.value);
-  
-      // Para o total estimado, incluímos todas as entradas
-      if (finance.type === 'Despesa') {
-        totalEstimado -= valor; // Subtraímos despesas no estimado
-      } else {
-        totalEstimado += valor; // Somamos receitas no estimado
-      }
-  
-      // Para o total concluído, consideramos apenas as entradas concluídas
-      if (finance.status === 'Concluído') {
-        if (finance.type === 'Despesa') {
-          totalConcluido -= valor; // Subtraímos despesas no total concluído
-        } else {
-          totalConcluido += valor; // Somamos receitas no total concluído
-        }
-      }
-    });
-  
-    // Atualiza o HTML para exibir os valores
-    $('#totalValue').text(totalConcluido.toFixed(2));
-    $('#estimatedValue').text(totalEstimado.toFixed(2));
-  }
+  let totalConcluido = 0;
+  let totalEstimado = 0;
 
-// Função para carregar as finanças do backend (api/finances)
+  finances.forEach((finance) => {
+    const valor = parseFloat(finance.value);
+
+    if (finance.type === "Despesa") {
+      totalEstimado -= valor;
+    } else {
+      totalEstimado += valor;
+    }
+
+    if (finance.status === "Concluído") {
+      if (finance.type === "Despesa") {
+        totalConcluido -= valor;
+      } else {
+        totalConcluido += valor;
+      }
+    }
+  });
+
+  $("#totalValue").text(totalConcluido.toFixed(2));
+  $("#estimatedValue").text(totalEstimado.toFixed(2));
+}
+
+function formatCurrency(value) {
+  return parseFloat(value).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
 async function loadFinances() {
-  const response = await fetch('/api/finances');
+  const response = await fetch("/api/finances");
   const data = await response.json();
 
   if (response.ok) {
     finances = data;
-    renderTable();   // Renderiza a tabela com os dados carregados
+    renderTable();
   } else {
-    console.error('Erro ao carregar finanças:', data.error);
+    console.error("Erro ao carregar finanças:", data.error);
   }
 }
 
-// Função para salvar uma nova entrada no backend
 async function saveFinance(finance) {
-  const response = await fetch('/api/finances', {
-    method: 'POST',
+  const response = await fetch("/api/finances", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(finance)
+    body: JSON.stringify(finance),
   });
 
   if (response.ok) {
-    loadFinances(); // Recarrega a tabela após salvar
+    loadFinances();
   } else {
     const data = await response.json();
-    console.error('Erro ao salvar finança:', data.error);
+    console.error("Erro ao salvar finança:", data.error);
   }
 }
 
-// Função para atualizar uma entrada existente no backend
 async function updateFinance(id, finance) {
-  const response = await fetch('/api/finances', {
-    method: 'PUT',
+  const response = await fetch("/api/finances", {
+    method: "PUT",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify({ id, updatedFinance: finance })
+    body: JSON.stringify({ id, updatedFinance: finance }),
   });
 
   if (response.ok) {
-    loadFinances(); // Recarrega a tabela após atualizar
+    loadFinances();
   } else {
     const data = await response.json();
-    console.error('Erro ao atualizar finança:', data.error);
+    console.error("Erro ao atualizar finança:", data.error);
   }
 }
 
-// Função para excluir uma entrada no backend
 async function deleteFinance(id) {
-  const response = await fetch('/api/finances', {
-    method: 'DELETE',
+  const response = await fetch("/api/finances", {
+    method: "DELETE",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify({ id })
+    body: JSON.stringify({ id }),
   });
 
   if (response.ok) {
-    loadFinances(); // Recarrega a tabela após excluir
+    loadFinances();
   } else {
     const data = await response.json();
-    console.error('Erro ao excluir finança:', data.error);
+    console.error("Erro ao excluir finança:", data.error);
   }
 }
 
-// Função para renderizar a tabela de finanças
 function renderTable() {
-    const tableBody = $('#financeTableBody');
-    tableBody.empty(); // Limpa o conteúdo da tabela
-  
-    finances.forEach((finance, index) => {
-      const row = `<tr>
+  const tableBody = $("#financeTableBody");
+  tableBody.empty();
+
+  const filteredFinances = applyFilters();
+
+  filteredFinances.forEach((finance, index) => {
+    const rowColor =
+      finance.type === "Receita" ? "table-success" : "table-danger";
+    const row = `<tr class="${rowColor}">
         <td>${finance.date}</td>
         <td>${finance.info}</td>
-        <td>${finance.value}</td>
+        <td>${formatCurrency(finance.value)}</td>
         <td>${finance.type}</td>
         <td>${finance.status}</td>
         <td>
-          <button class="btn btn-warning btn-sm editFinance" data-index="${index}" data-id="${finance.id}">Editar</button>
-          <button class="btn btn-danger btn-sm deleteFinance" data-id="${finance.id}">Excluir</button>
+          <button class="btn btn-warning btn-sm editFinance" data-index="${index}" data-id="${
+      finance.id
+    }">Editar</button>
+          <button class="btn btn-danger btn-sm deleteFinance" data-id="${
+            finance.id
+          }">Excluir</button>
         </td>
       </tr>`;
-      tableBody.append(row);
-    });
-  
-    // Calcula e exibe os totais
-    calculateTotals();
-  }
+    tableBody.append(row);
+  });
 
-// Ação para adicionar nova entrada
-$('#addFinance').click(function() {
-  $('#financeModalLabel').text('Adicionar Nova Entrada');
-  $('#financeForm')[0].reset();
-  $('#editIndex').val('');
-  $('#financeModal').modal('show');
+  calculateTotals();
+}
+
+// Eventos de filtro de busca
+$("#searchInfo").on("input", function () {
+  renderTable(); // Re-renderiza a tabela toda vez que informações mudar
 });
 
-// Ação para editar uma entrada existente
-$(document).on('click', '.editFinance', function() {
-  const index = $(this).data('index');
+$("#searchDate").on("input", function () {
+  renderTable(); // Re-renderiza a tabela quando a data for alterada
+});
+
+// Function para aplicar filtro de busca
+function applyFilters() {
+  const searchInfo = $("#searchInfo").val().toLowerCase();
+  const searchDate = $("#searchDate").val();
+
+  const filteredFinances = finances.filter((finance) => {
+    const matchesInfo = finance.info.toLowerCase().includes(searchInfo);
+    const matchesDate = !searchDate || finance.date === searchDate;
+
+    return matchesInfo && matchesDate;
+  });
+
+  return filteredFinances;
+}
+
+$("#addFinance").click(function () {
+  $("#financeModalLabel").text("Adicionar Nova Entrada");
+  $("#financeForm")[0].reset();
+  $("#editIndex").val("");
+  $("#financeModal").modal("show");
+});
+
+$(document).on("click", ".editFinance", function () {
+  const index = $(this).data("index");
   const finance = finances[index];
 
-  $('#financeModalLabel').text('Editar Entrada');
-  $('#financeDate').val(finance.date);
-  $('#financeInfo').val(finance.info);
-  $('#financeValue').val(finance.value);
-  $('#financeType').val(finance.type);
-  $('#financeStatus').val(finance.status);
-  $('#editIndex').val(finance.id);
+  $("#financeModalLabel").text("Editar Entrada");
+  $("#financeDate").val(finance.date);
+  $("#financeInfo").val(finance.info);
+  $("#financeValue").val(finance.value);
+  $("#financeType").val(finance.type);
+  $("#financeStatus").val(finance.status);
+  $("#editIndex").val(finance.id);
 
-  $('#financeModal').modal('show');
+  $("#financeModal").modal("show");
 });
 
-// Ação para excluir uma entrada
-$(document).on('click', '.deleteFinance', function() {
-  const id = $(this).data('id');
-  deleteFinance(id); // Chama a função de exclusão
+$(document).on("click", ".deleteFinance", function () {
+  const id = $(this).data("id");
+  deleteFinance(id);
 });
 
-// Salvar nova entrada ou atualizar existente
-$('#financeForm').submit(function(event) {
+$("#financeForm").submit(function (event) {
   event.preventDefault();
 
   const finance = {
-    date: $('#financeDate').val(),
-    info: $('#financeInfo').val(),
-    value: $('#financeValue').val(),
-    type: $('#financeType').val(),
-    status: $('#financeStatus').val(),
+    date: $("#financeDate").val(),
+    info: $("#financeInfo").val(),
+    value: $("#financeValue").val(),
+    type: $("#financeType").val(),
+    status: $("#financeStatus").val(),
   };
 
-  const editId = $('#editIndex').val();
+  const editId = $("#editIndex").val();
   if (editId) {
-    updateFinance(editId, finance); // Atualiza a entrada
+    updateFinance(editId, finance);
   } else {
-    saveFinance(finance); // Adiciona uma nova entrada
+    saveFinance(finance);
   }
 
-  $('#financeModal').modal('hide'); // Fecha o modal
+  $("#financeModal").modal("hide");
 });
 
-// Carregar as finanças ao carregar a página
 loadFinances();
-
-
-
