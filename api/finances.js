@@ -1,23 +1,24 @@
 import fs from 'fs';
 import path from 'path';
 
-const filePath = path.resolve('./finances.json');
+const filePath = path.resolve('./api/finances.json'); // Caminho correto para o arquivo JSON
 
 export default function handler(req, res) {
   if (req.method === 'GET') {
-    // Ler o arquivo JSON e retornar os dados
+    // Lê o arquivo JSON e retorna os dados
     fs.readFile(filePath, 'utf8', (err, data) => {
       if (err) {
         return res.status(500).json({ error: 'Falha ao ler o arquivo' });
       }
-      res.status(200).json(JSON.parse(data));
+      res.status(200).json(JSON.parse(data)); // Retorna os dados do JSON
     });
   }
 
   if (req.method === 'POST') {
-    const updatedFinances = req.body; // Recebe o array completo de finanças
+    // Recebe o array completo de finanças do frontend
+    const updatedFinances = req.body;
 
-    // Sobrescreve o arquivo com o array atualizado de finanças
+    // Escreve o array completo no arquivo JSON
     fs.writeFile(filePath, JSON.stringify(updatedFinances, null, 2), (err) => {
       if (err) {
         return res.status(500).json({ error: 'Falha ao salvar o arquivo' });
